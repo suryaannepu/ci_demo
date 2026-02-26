@@ -1,0 +1,33 @@
+name: Strict HTML Validation
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  validate-html:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v3
+
+    - name: Install HTML Tidy
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y tidy
+
+    - name: Validate HTML Files (Fail on Errors)
+      run: |
+        failed=0
+        for file in $(find . -name "*.html"); do
+          echo "Checking $file"
+          tidy -errors -q "$file"
+          if [ $? -ne 0 ]; then
+            failed=1
+          fi
+        done
+        if [ $failed -ne 0 ]; then
+          echo "HTML validation failed."
+          exit 1
+        fi
